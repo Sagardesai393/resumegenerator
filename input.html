@@ -1,0 +1,213 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Generator - Input Data</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Header Section -->
+    <header class="bg-blue-600 text-white py-6">
+        <div class="container mx-auto text-center">
+            <h1 class="text-4xl font-bold">Resume Generator</h1>
+            <p class="mt-2 text-lg">Step-by-Step Input</p>
+        </div>
+    </header>
+
+    <!-- Form Section -->
+    <section class="py-12">
+        <div class="container mx-auto max-w-2xl bg-white p-8 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Enter Your Details</h2>
+            <div class="flex justify-between mb-6">
+                <div class="text-center">
+                    <span class="step-indicator bg-blue-600 text-white rounded-full w-8 h-8 inline-flex items-center justify-center">1</span>
+                    <p class="text-sm mt-2">Profile</p>
+                </div>
+                <div class="text-center">
+                    <span class="step-indicator bg-gray-300 text-gray-800 rounded-full w-8 h-8 inline-flex items-center justify-center">2</span>
+                    <p class="text-sm mt-2">Employment</p>
+                </div>
+                <div class="text-center">
+                    <span class="step-indicator bg-gray-300 text-gray-800 rounded-full w-8 h-8 inline-flex items-center justify-center">3</span>
+                    <p class="text-sm mt-2">Education</p>
+                </div>
+                <div class="text-center">
+                    <span class="step-indicator bg-gray-300 text-gray-800 rounded-full w-8 h-8 inline-flex items-center justify-center">4</span>
+                    <p class="text-sm mt-2">Skills</p>
+                </div>
+            </div>
+
+            <!-- Multi-Step Form -->
+            <div id="form-steps">
+                <!-- Step 1: Profile -->
+                <div class="step" id="step-1">
+                    <h3 class="text-xl font-semibold mb-4">Profile</h3>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="name">Full Name</label>
+                        <input type="text" id="name" class="w-full p-2 border rounded" placeholder="e.g., Sagar Desai">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="profile-summary">Profile Summary</label>
+                        <textarea id="profile-summary" class="w-full p-2 border rounded" rows="4" placeholder="e.g., Dynamic Senior Sales Coordinator with 7 years of experience..."></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="address">Address</label>
+                        <input type="text" id="address" class="w-full p-2 border rounded" placeholder="e.g., 703, Dev apartment, Laxmi nagar society, Ravapar Road">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="city">City</label>
+                        <input type="text" id="city" class="w-full p-2 border rounded" placeholder="e.g., Morbi">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="state">State</label>
+                        <input type="text" id="state" class="w-full p-2 border rounded" placeholder="e.g., India">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="zip">Zip Code</label>
+                        <input type="text" id="zip" class="w-full p-2 border rounded" placeholder="e.g., 363641">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="phone">Phone</label>
+                        <input type="text" id="phone" class="w-full p-2 border rounded" placeholder="e.g., 846031900">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="email">Email</label>
+                        <input type="email" id="email" class="w-full p-2 border rounded" placeholder="e.g., sagardesai393@gmail.com">
+                    </div>
+                    <button class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700" onclick="nextStep(2)">Next</button>
+                </div>
+
+                <!-- Step 2: Employment History -->
+                <div class="step hidden" id="step-2">
+                    <h3 class="text-xl font-semibold mb-4">Employment History</h3>
+                    <div id="employment-entries">
+                        <div class="employment-entry mb-4">
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="job-title-1">Job Title</label>
+                                <input type="text" id="job-title-1" class="w-full p-2 border rounded" placeholder="e.g., Senior Sales Coordinator">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="company-1">Company</label>
+                                <input type="text" id="company-1" class="w-full p-2 border rounded" placeholder="e.g., Comet Granito Pvt. Ltd, Morbi">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="duration-1">Duration</label>
+                                <input type="text" id="duration-1" class="w-full p-2 border rounded" placeholder="e.g., April 2018 - Present">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="responsibilities-1">Responsibilities</label>
+                                <textarea id="responsibilities-1" class="w-full p-2 border rounded" rows="4" placeholder="e.g., Coordinated sales activities to optimize team performance..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 mb-4" onclick="addEmployment()">Add Another Job</button>
+                    <div class="flex justify-between">
+                        <button class="bg-gray-400 text-white py-2 px-4 rounded hover:bg-gray-500" onclick="prevStep(1)">Previous</button>
+                        <button class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700" onclick="nextStep(3)">Next</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Education -->
+                <div class="step hidden" id="step-3">
+                    <h3 class="text-xl font-semibold mb-4">Education</h3>
+                    <div id="education-entries">
+                        <div class="education-entry mb-4">
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="degree-1">Degree</label>
+                                <input type="text" id="degree-1" class="w-full p-2 border rounded" placeholder="e.g., BE Automobile">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="institution-1">Institution</label>
+                                <input type="text" id="institution-1" class="w-full p-2 border rounded" placeholder="e.g., Marwadi Education Foundation's Group of Institution, Rajkot">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="edu-duration-1">Duration</label>
+                                <input type="text" id="edu-duration-1" class="w-full p-2 border rounded" placeholder="e.g., 2013 - 2017">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 mb-2" for="details-1">Details</label>
+                                <input type="text" id="details-1" class="w-full p-2 border rounded" placeholder="e.g., Graduated with 8.2 CGPA">
+                            </div>
+                        </div>
+                    </div>
+                    <button class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 mb-4" onclick="addEducation()">Add Another Education</button>
+                    <div class="flex justify-between">
+                        <button class="bg-gray-400 text-white py-2 px-4 rounded hover:bg-gray-500" onclick="prevStep(2)">Previous</button>
+                        <button class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700" onclick="nextStep(4)">Next</button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Skills -->
+                <div class="step hidden" id="step-4">
+                    <h3 class="text-xl font-semibold mb-4">Skills & Hobbies</h3>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="skills">Skills</label>
+                        <textarea id="skills" class="w-full p-2 border rounded" rows="4" placeholder="e.g., Customer Service Skills, Marketing, Fast Learner..."></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="languages">Languages</label>
+                        <textarea id="languages" class="w-full p-2 border rounded" rows="2" placeholder="e.g., English, Hindi, Gujarati"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2" for="hobbies">Hobbies</label>
+                        <textarea id="hobbies" class="w-full p-2 border rounded" rows="2" placeholder="e.g., Reading, Long Drives, Travelling, Calligraphy"></textarea>
+                    </div>
+                    <div class="flex justify-between">
+                        <button class="bg-gray-400 text-white py-2 px-4 rounded hover:bg-gray-500" onclick="prevStep(3)">Previous</button>
+                        <button class="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700" onclick="generateResume()">Generate Resume</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Section -->
+    <footer class="bg-blue-600 text-white py-6">
+        <div class="container mx-auto text-center">
+            <p>© 2025 Resume Generator. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

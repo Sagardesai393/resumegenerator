@@ -1,0 +1,98 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Generator - Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Header Section -->
+    <header class="bg-blue-600 text-white py-6">
+        <div class="container mx-auto text-center">
+            <h1 class="text-4xl font-bold">Resume Generator</h1>
+            <p class="mt-2 text-lg">Create a professional resume in minutes!</p>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="py-12">
+        <div class="container mx-auto text-center">
+            <h2 class="text-3xl font-semibold text-gray-800 mb-4">Build Your Resume Easily</h2>
+            <p class="text-gray-600 mb-6">Input your details step-by-step and download your resume in Word or PDF format.</p>
+            <a href="input.html" class="inline-block bg-blue-600 text-white py-3 px-6 rounded-lg text-lg font-medium hover:bg-blue-700 transition">Get Started</a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="bg-white py-12">
+        <div class="container mx-auto">
+            <h2 class="text-3xl font-semibold text-center text-gray-800 mb-8">Why Choose Us?</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <div class="text-5xl text-blue-600 mb-4">📝</div>
+                    <h3 class="text-xl font-semibold text-gray-800">Easy to Use</h3>
+                    <p class="text-gray-600 mt-2">Step-by-step form to input your details without any hassle.</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-5xl text-blue-600 mb-4">📄</div>
+                    <h3 class="text-xl font-semibold text-gray-800">Multiple Formats</h3>
+                    <p class="text-gray-600 mt-2">Download your resume in both Word and PDF formats.</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-5xl text-blue-600 mb-4">🎨</div>
+                    <h3 class="text-xl font-semibold text-gray-800">Professional Design</h3>
+                    <p class="text-gray-600 mt-2">Get a clean and professional resume template.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Section -->
+    <footer class="bg-blue-600 text-white py-6">
+        <div class="container mx-auto text-center">
+            <p>&copy; 2025 Resume Generator. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
