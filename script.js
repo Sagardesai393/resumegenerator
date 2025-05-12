@@ -48,8 +48,8 @@ function addEmployment() {
             <input type="text" id="duration-${employmentCount}" class="w-full p-2 border rounded" placeholder="e.g., April 2018 - Present">
         </div>
         <div class="mb-4">
-            <label class="block text-gray-700 mb-2" for="responsibilities-${employmentCount}">Responsibilities</label>
-            <textarea id="responsibilities-${employmentCount}" class="w-full p-2 border rounded" rows="4" placeholder="e.g., Coordinated sales activities to optimize team performance..."></textarea>
+            <label class="block text-gray-700 mb-2" for="responsibilities-${employmentCount}">Responsibilities (comma-separated)</label>
+            <textarea id="responsibilities-${employmentCount}" class="w-full p-2 border rounded" rows="4" placeholder="e.g., Coordinated sales activities to optimize team performance, Developed and maintained relationships with key clients"></textarea>
         </div>
     `;
     employmentEntries.appendChild(newEntry);
@@ -136,11 +136,62 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('resume-address').textContent = resumeData.address || 'Address not provided.';
             document.getElementById('resume-phone').textContent = resumeData.phone || 'Phone not provided.';
             document.getElementById('resume-email').textContent = resumeData.email || 'Email not provided.';
-            document.getElementById('resume-skills').textContent = resumeData.skills || 'Skills not provided.';
-            document.getElementById('resume-languages').textContent = resumeData.languages || 'Languages not provided.';
-            document.getElementById('resume-hobbies').textContent = resumeData.hobbies || 'Hobbies not provided.';
 
-            // Populate employment history
+            // Populate skills as bullet points
+            const skillsList = document.getElementById('resume-skills');
+            skillsList.innerHTML = '';
+            if (resumeData.skills) {
+                const skillsArray = resumeData.skills.split(',').map(skill => skill.trim());
+                skillsArray.forEach(skill => {
+                    if (skill) {
+                        const li = document.createElement('li');
+                        li.textContent = skill;
+                        skillsList.appendChild(li);
+                    }
+                });
+            } else {
+                const li = document.createElement('li');
+                li.textContent = 'Skills not provided.';
+                skillsList.appendChild(li);
+            }
+
+            // Populate languages as bullet points
+            const languagesList = document.getElementById('resume-languages');
+            languagesList.innerHTML = '';
+            if (resumeData.languages) {
+                const languagesArray = resumeData.languages.split(',').map(lang => lang.trim());
+                languagesArray.forEach(lang => {
+                    if (lang) {
+                        const li = document.createElement('li');
+                        li.textContent = lang;
+                        languagesList.appendChild(li);
+                    }
+                });
+            } else {
+                const li = document.createElement('li');
+                li.textContent = 'Languages not provided.';
+                languagesList.appendChild(li);
+            }
+
+            // Populate hobbies as bullet points
+            const hobbiesList = document.getElementById('resume-hobbies');
+            hobbiesList.innerHTML = '';
+            if (resumeData.hobbies) {
+                const hobbiesArray = resumeData.hobbies.split(',').map(hobby => hobby.trim());
+                hobbiesArray.forEach(hobby => {
+                    if (hobby) {
+                        const li = document.createElement('li');
+                        li.textContent = hobby;
+                        hobbiesList.appendChild(li);
+                    }
+                });
+            } else {
+                const li = document.createElement('li');
+                li.textContent = 'Hobbies not provided.';
+                hobbiesList.appendChild(li);
+            }
+
+            // Populate employment history with responsibilities as bullet points
             const employmentSection = document.getElementById('resume-employment');
             employmentSection.innerHTML = '';
             resumeData.employment.forEach(job => {
@@ -149,8 +200,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 jobEntry.innerHTML = `
                     <h3 class="text-lg font-semibold text-gray-800">${job.jobTitle} at ${job.company}</h3>
                     <p class="text-gray-600 italic">${job.duration}</p>
-                    <p class="text-gray-600">${job.responsibilities}</p>
                 `;
+                const ul = document.createElement('ul');
+                ul.className = 'text-gray-600 list-disc list-inside';
+                if (job.responsibilities) {
+                    const responsibilitiesArray = job.responsibilities.split(',').map(resp => resp.trim());
+                    responsibilitiesArray.forEach(resp => {
+                        if (resp) {
+                            const li = document.createElement('li');
+                            li.textContent = resp;
+                            ul.appendChild(li);
+                        }
+                    });
+                } else {
+                    const li = document.createElement('li');
+                    li.textContent = 'Responsibilities not provided.';
+                    ul.appendChild(li);
+                }
+                jobEntry.appendChild(ul);
                 employmentSection.appendChild(jobEntry);
             });
 
@@ -186,6 +253,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 h2 { font-size: 18px; font-weight: bold; }
                                 h3 { font-size: 16px; font-weight: bold; }
                                 p { font-size: 14px; }
+                                ul { list-style-type: disc; margin-left: 20px; }
+                                li { font-size: 14px; }
                             </style>
                         </head>
                         <body>${htmlContent}</body>
@@ -226,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         width: 190,
                         windowWidth: 650,
                         html2canvas: {
-                            scale: 0.3 // Adjust scale to fit content better
+                            scale: 0.3
                         }
                     });
                 } catch (error) {
